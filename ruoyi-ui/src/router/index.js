@@ -63,14 +63,39 @@ export const constantRoutes = [
   },
   {
     path: '',
+    component: () => import('@/views/exam-home'),
+    hidden: true
+  },
+  {
+    path: '/exam-home',
+    component: () => import('@/views/exam-home'),
+    hidden: true
+  },
+  {
+    path: '/exam/registration',
+    component: () => import('@/views/exam/registration'),
+    hidden: true
+  },
+  {
+    path: '/exam/my-exams',
+    component: () => import('@/views/exam/my-exams'),
+    hidden: true
+  },
+  {
+    path: '/admin',
     component: Layout,
-    redirect: 'index',
+    redirect: '/index',
+    hidden: true
+  },
+  {
+    path: '/index',
+    component: Layout,
     children: [
       {
-        path: 'index',
+        path: '',
         component: () => import('@/views/index'),
         name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
+        meta: { title: '后台首页', icon: 'dashboard', affix: true }
       }
     ]
   },
