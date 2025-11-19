@@ -124,20 +124,29 @@
         <el-row :gutter="20">
           <el-col :xs="24" :sm="8">
             <div class="stat-card">
-              <div class="stat-number">{{ stats.totalExams }}</div>
-              <div class="stat-label">累计考试次数</div>
+              <div class="stat-icon">
+                <i class="el-icon-document"></i>
+              </div>
+              <div class="stat-number">{{ stats.subjectCount }}</div>
+              <div class="stat-label">考试科目</div>
             </div>
           </el-col>
           <el-col :xs="24" :sm="8">
             <div class="stat-card">
-              <div class="stat-number">{{ stats.totalQuestions }}</div>
-              <div class="stat-label">题库总题数</div>
+              <div class="stat-icon">
+                <i class="el-icon-office-building"></i>
+              </div>
+              <div class="stat-number">{{ stats.siteCount }}</div>
+              <div class="stat-label">考点数量</div>
             </div>
           </el-col>
           <el-col :xs="24" :sm="8">
             <div class="stat-card">
-              <div class="stat-number">{{ stats.avgScore }}</div>
-              <div class="stat-label">平均成绩</div>
+              <div class="stat-icon">
+                <i class="el-icon-date"></i>
+              </div>
+              <div class="stat-number">{{ stats.sessionCount }}</div>
+              <div class="stat-label">考试场次</div>
             </div>
           </el-col>
         </el-row>
@@ -152,15 +161,18 @@
 </template>
 
 <script>
+import { getHomeStatistics } from "@/api/system/exam/statistics"
+import { listNotice } from "@/api/system/notice"
+
 export default {
   name: 'ExamHome',
   data() {
     return {
       announcements: [],
       stats: {
-        totalExams: 0,
-        totalQuestions: 0,
-        avgScore: 0
+        subjectCount: 0,
+        siteCount: 0,
+        sessionCount: 0
       }
     }
   },
@@ -178,12 +190,16 @@ export default {
     },
     
     loadStats() {
-      // TODO: 调用后端API获取统计数据
-      this.stats = {
-        totalExams: 156,
-        totalQuestions: 2580,
-        avgScore: 85.6
-      }
+      getHomeStatistics().then(response => {
+        this.stats = response.data
+      }).catch(() => {
+        // 如果获取失败，使用默认值
+        this.stats = {
+          subjectCount: 0,
+          siteCount: 0,
+          sessionCount: 0
+        }
+      })
     },
     
     handleFeature(type) {
@@ -195,45 +211,55 @@ export default {
     },
     
     loadAnnouncements() {
-      // TODO: 调用后端API获取公告数据
-      this.announcements = [
-        {
-          id: 1,
-          type: 'important',
-          typeLabel: '重要',
-          title: '关于2024年第一季度考试安排的通知',
-          content: '各位考生请注意，2024年第一季度综合测试将于3月15日14:00开始，请提前做好准备，准时参加考试。',
-          publishTime: '2024-03-01 10:00',
-          author: '系统管理员'
-        },
-        {
-          id: 2,
-          type: 'notice',
-          typeLabel: '通知',
-          title: '系统维护通知',
-          content: '系统将于本周六凌晨2:00-6:00进行例行维护升级，届时将无法访问，请各位考生合理安排时间。',
-          publishTime: '2024-03-05 15:30',
-          author: '技术部'
-        },
-        {
-          id: 3,
-          type: 'update',
-          typeLabel: '更新',
-          title: '题库更新公告',
-          content: '本周新增Java高级编程、数据结构与算法等科目题库共计500道题目，欢迎大家练习使用。',
-          publishTime: '2024-03-08 09:00',
-          author: '教务处'
-        },
-        {
-          id: 4,
-          type: 'event',
-          typeLabel: '活动',
-          title: '在线模拟考试活动开启',
-          content: '为帮助考生更好地备考，系统开放免费模拟考试功能，欢迎大家积极参与，检验学习成果。',
-          publishTime: '2024-03-10 14:00',
-          author: '考试中心'
+      // 调用后端API获取公告数据
+      listNotice({ status: '0' }).then(response => {
+        if (response.rows && response.rows.length > 0) {
+          this.announcements = response.rows.slice(0, 4).map(notice => {
+            // 根据公告类型映射显示类型
+            const typeMap = {
+              '1': { type: 'notice', typeLabel: '通知' },
+              '2': { type: 'important', typeLabel: '重要' }
+            }
+            const typeInfo = typeMap[notice.noticeType] || { type: 'notice', typeLabel: '通知' }
+            
+            return {
+              id: notice.noticeId,
+              type: typeInfo.type,
+              typeLabel: typeInfo.typeLabel,
+              title: notice.noticeTitle,
+              content: notice.noticeContent || '暂无内容',
+              publishTime: notice.createTime,
+              author: notice.createBy || '系统管理员'
+            }
+          })
+        } else {
+          // 如果没有公告数据，使用默认公告
+          this.announcements = [
+            {
+              id: 1,
+              type: 'important',
+              typeLabel: '重要',
+              title: '欢迎使用考试管理系统',
+              content: '系统已成功部署，您可以开始使用考试管理功能。请先配置考试科目、考点和场次信息。',
+              publishTime: new Date().toLocaleString('zh-CN'),
+              author: '系统管理员'
+            }
+          ]
         }
-      ]
+      }).catch(() => {
+        // 如果获取失败，使用默认公告
+        this.announcements = [
+          {
+            id: 1,
+            type: 'important',
+            typeLabel: '重要',
+            title: '欢迎使用考试管理系统',
+            content: '系统已成功部署，您可以开始使用考试管理功能。请先配置考试科目、考点和场次信息。',
+            publishTime: new Date().toLocaleString('zh-CN'),
+            author: '系统管理员'
+          }
+        ]
+      })
     },
     
     handleAnnouncementClick(announcement) {
@@ -535,6 +561,23 @@ export default {
     
     &:hover {
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+    
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      i {
+        font-size: 28px;
+        color: #fff;
+      }
     }
     
     .stat-number {
