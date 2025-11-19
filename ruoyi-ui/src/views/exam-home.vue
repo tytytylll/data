@@ -37,7 +37,7 @@
         <el-carousel 
           :interval="5000" 
           arrow="hover" 
-          height="120px"
+          height="280px"
           indicator-position="none"
         >
           <el-carousel-item v-for="(item, index) in announcements" :key="index">
@@ -47,7 +47,7 @@
                   {{ item.typeLabel }}
                 </div>
                 <h3 class="announcement-item-title">{{ item.title }}</h3>
-                <p class="announcement-desc">{{ item.content }}</p>
+                <div class="announcement-desc" v-html="item.content"></div>
                 <div class="announcement-meta">
                   <span class="announcement-time">
                     <i class="el-icon-time"></i> {{ item.publishTime }}
@@ -264,7 +264,9 @@ export default {
     
     handleAnnouncementClick(announcement) {
       this.$alert(announcement.content, announcement.title, {
+        dangerouslyUseHTMLString: true,
         confirmButtonText: '我知道了',
+        customClass: 'announcement-dialog',
         callback: () => {
           // TODO: 可以跳转到公告详情页面
         }
@@ -401,12 +403,19 @@ export default {
     padding: 12px;
     border-radius: 4px;
     transition: all 0.3s ease;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
     
     &:hover {
       background: #f5f7fa;
     }
     
     .announcement-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      
       .announcement-badge {
         display: inline-block;
         padding: 2px 10px;
@@ -453,11 +462,38 @@ export default {
         color: #606266;
         margin: 8px 0;
         line-height: 1.6;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 8px;
+        min-height: 0;
+        
+        // 自定义滚动条样式
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 3px;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 3px;
+          
+          &:hover {
+            background: #a8a8a8;
+          }
+        }
+        
+        // 图片样式
+        img {
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 8px 0;
+          border-radius: 4px;
+        }
       }
       
       .announcement-meta {
@@ -626,6 +662,10 @@ export default {
   .announcement-section {
     padding: 15px 20px;
     
+    .el-carousel {
+      height: 220px !important;
+    }
+    
     .announcement-header {
       .announcement-title {
         font-size: 16px;
@@ -633,6 +673,8 @@ export default {
     }
     
     .announcement-item {
+      height: 220px;
+      
       .announcement-content {
         .announcement-item-title {
           font-size: 15px;
@@ -660,6 +702,31 @@ export default {
   .stats-section {
     .el-col {
       margin-bottom: 15px;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+// 全局样式：公告弹窗内容样式
+.announcement-dialog {
+  .el-message-box__message {
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    
+    p {
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    
+    // 处理富文本编辑器生成的内容
+    * {
+      max-width: 100%;
     }
   }
 }
