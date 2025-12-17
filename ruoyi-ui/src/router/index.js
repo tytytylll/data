@@ -82,6 +82,11 @@ export const constantRoutes = [
     hidden: true
   },
   {
+    path: '/exam/score-query',
+    component: () => import('@/views/exam/score-query'),
+    hidden: true
+  },
+  {
     path: '/admin',
     component: Layout,
     redirect: '/index',

@@ -204,9 +204,9 @@ export default {
     
     handleFeature(type) {
       if (type === 'score') {
-        this.$message.info('成绩查询功能开发中...')
+        this.$router.push('/exam/score-query')
       } else if (type === 'profile') {
-        this.$message.info('个人中心功能开发中...')
+        this.$router.push('/user/profile')
       }
     },
     

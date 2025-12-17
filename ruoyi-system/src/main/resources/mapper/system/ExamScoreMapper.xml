@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ExamScoreMapper">
+
+	<resultMap type="ExamScore" id="ExamScoreResult">
+		<id     property="scoreId"        column="score_id"         />
+		<result property="userId"         column="user_id"          />
+		<result property="subjectId"      column="subject_id"       />
+		<result property="siteId"         column="site_id"          />
+		<result property="sessionId"      column="session_id"       />
+		<result property="examTime"       column="exam_time"        />
+		<result property="score"          column="score"            />
+		<result property="passStatus"     column="pass_status"      />
+		<result property="scoreLevel"     column="score_level"      />
+		<result property="status"         column="status"           />
+		<result property="publishStatus"  column="publish_status"   />
+		<result property="publishTime"    column="publish_time"     />
+		<result property="createBy"       column="create_by"        />
+		<result property="createTime"     column="create_time"      />
+		<result property="updateBy"       column="update_by"        />
+		<result property="updateTime"     column="update_time"      />
+		<result property="remark"         column="remark"           />
+		<result property="userName"       column="user_name"        />
+		<result property="subjectName"    column="subject_name"     />
+		<result property="siteName"       column="site_name"        />
+		<result property="sessionName"    column="session_name"     />
+	</resultMap>
+	
+	<sql id="selectExamScoreVo">
+        select s.score_id, s.user_id, s.subject_id, s.site_id, s.session_id, s.exam_time,
+               s.score, s.pass_status, s.score_level, s.status, s.publish_status, s.publish_time,
+               s.create_by, s.create_time, s.update_by, s.update_time, s.remark,
+               u.nick_name as user_name, sub.subject_name, site.site_name, sess.session_name
+        from exam_score s
+        left join sys_user u on s.user_id = u.user_id
+        left join exam_subject sub on s.subject_id = sub.subject_id
+        left join exam_site site on s.site_id = site.site_id
+        left join exam_session sess on s.session_id = sess.session_id
+    </sql>
+
+	<select id="selectExamScoreList" parameterType="ExamScore" resultMap="ExamScoreResult">
+	    <include refid="selectExamScoreVo"/>
+		<where>
+			<if test="userId != null">
+				AND s.user_id = #{userId}
+			</if>
+			<if test="subjectId != null">
+				AND s.subject_id = #{subjectId}
+			</if>
+			<if test="siteId != null">
+				AND s.site_id = #{siteId}
+			</if>
+			<if test="sessionId != null">
+				AND s.session_id = #{sessionId}
+			</if>
+			<if test="passStatus != null and passStatus != ''">
+				AND s.pass_status = #{passStatus}
+			</if>
+			<if test="status != null and status != ''">
+				AND s.status = #{status}
+			</if>
+			<if test="publishStatus != null and publishStatus != ''">
+				AND s.publish_status = #{publishStatus}
+			</if>
+		</where>
+		order by s.create_time desc
+	</select>
+	
+	<select id="selectExamScoreByUserId" parameterType="Long" resultMap="ExamScoreResult">
+		<include refid="selectExamScoreVo"/>
+		where s.user_id = #{userId} and s.status = '0' and s.publish_status = '1'
+		order by s.exam_time desc
+	</select>
+	
+	<select id="selectExamScoreById" parameterType="Long" resultMap="ExamScoreResult">
+		<include refid="selectExamScoreVo"/>
+		where s.score_id = #{scoreId}
+	</select>
+	
+	<insert id="insertExamScore" parameterType="ExamScore" useGeneratedKeys="true" keyProperty="scoreId">
+ 		insert into exam_score(
+ 			<if test="userId != null">user_id,</if>
+ 			<if test="subjectId != null">subject_id,</if>
+ 			<if test="siteId != null">site_id,</if>
+ 			<if test="sessionId != null">session_id,</if>
+ 			<if test="examTime != null">exam_time,</if>
+ 			<if test="score != null">score,</if>
+ 			<if test="passStatus != null and passStatus != ''">pass_status,</if>
+ 			<if test="scoreLevel != null and scoreLevel != ''">score_level,</if>
+ 			<if test="status != null and status != ''">status,</if>
+ 			<if test="publishStatus != null and publishStatus != ''">publish_status,</if>
+ 			<if test="publishTime != null">publish_time,</if>
+ 			<if test="remark != null and remark != ''">remark,</if>
+ 			<if test="createBy != null and createBy != ''">create_by,</if>
+ 			create_time
+ 		)values(
+ 			<if test="userId != null">#{userId},</if>
+ 			<if test="subjectId != null">#{subjectId},</if>
+ 			<if test="siteId != null">#{siteId},</if>
+ 			<if test="sessionId != null">#{sessionId},</if>
+ 			<if test="examTime != null">#{examTime},</if>
+ 			<if test="score != null">#{score},</if>
+ 			<if test="passStatus != null and passStatus != ''">#{passStatus},</if>
+ 			<if test="scoreLevel != null and scoreLevel != ''">#{scoreLevel},</if>
+ 			<if test="status != null and status != ''">#{status},</if>
+ 			<if test="publishStatus != null and publishStatus != ''">#{publishStatus},</if>
+ 			<if test="publishTime != null">#{publishTime},</if>
+ 			<if test="remark != null and remark != ''">#{remark},</if>
+ 			<if test="createBy != null and createBy != ''">#{createBy},</if>
+ 			sysdate()
+ 		)
+	</insert>
+	
+	<update id="updateExamScore" parameterType="ExamScore">
+ 		update exam_score
+ 		<set>
+ 			<if test="userId != null">user_id = #{userId},</if>
+ 			<if test="subjectId != null">subject_id = #{subjectId},</if>
+ 			<if test="siteId != null">site_id = #{siteId},</if>
+ 			<if test="sessionId != null">session_id = #{sessionId},</if>
+ 			<if test="examTime != null">exam_time = #{examTime},</if>
+ 			<if test="score != null">score = #{score},</if>
+ 			<if test="passStatus != null and passStatus != ''">pass_status = #{passStatus},</if>
+ 			<if test="scoreLevel != null">score_level = #{scoreLevel},</if>
+ 			<if test="status != null and status != ''">status = #{status},</if>
+ 			<if test="publishStatus != null and publishStatus != ''">publish_status = #{publishStatus},</if>
+ 			<if test="publishTime != null">publish_time = #{publishTime},</if>
+ 			<if test="remark != null">remark = #{remark},</if>
+ 			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+ 			update_time = sysdate()
+ 		</set>
+ 		where score_id = #{scoreId}
+	</update>
+	
+	<delete id="deleteExamScoreById" parameterType="Long">
+		delete from exam_score where score_id = #{scoreId}
+	</delete>
+	
+	<delete id="deleteExamScoreByIds" parameterType="Long">
+ 		delete from exam_score where score_id in
+ 		<foreach collection="array" item="scoreId" open="(" separator="," close=")">
+ 			#{scoreId}
+        </foreach> 
+ 	</delete>
+ 	
+ 	<update id="publishExamScoreByIds" parameterType="Long">
+ 		update exam_score set publish_status = '1', publish_time = sysdate() where score_id in
+ 		<foreach collection="array" item="scoreId" open="(" separator="," close=")">
+ 			#{scoreId}
+        </foreach> 
+ 	</update>
+
+</mapper>
