@@ -22,6 +22,10 @@ public class ExamScore extends BaseEntity
     @Excel(name = "成绩ID", cellType = ColumnType.NUMERIC)
     private Long scoreId;
 
+    /** 考生ID */
+    @Excel(name = "考生ID", cellType = ColumnType.NUMERIC)
+    private Long candidateId;
+
     /** 用户ID */
     @Excel(name = "用户ID", cellType = ColumnType.NUMERIC)
     private Long userId;
@@ -68,8 +72,16 @@ public class ExamScore extends BaseEntity
     @Excel(name = "发布时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date publishTime;
 
+    /** 定时发布时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "定时发布时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
+    private Date scheduledPublishTime;
+
     /** 用户名称（非数据库字段） */
     private String userName;
+
+    /** 考生名称（非数据库字段） */
+    private String candidateName;
 
     /** 科目名称（非数据库字段） */
     private String subjectName;
@@ -82,6 +94,9 @@ public class ExamScore extends BaseEntity
 
     public Long getScoreId() { return scoreId; }
     public void setScoreId(Long scoreId) { this.scoreId = scoreId; }
+
+    public Long getCandidateId() { return candidateId; }
+    public void setCandidateId(Long candidateId) { this.candidateId = candidateId; }
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
@@ -116,8 +131,14 @@ public class ExamScore extends BaseEntity
     public Date getPublishTime() { return publishTime; }
     public void setPublishTime(Date publishTime) { this.publishTime = publishTime; }
 
+    public Date getScheduledPublishTime() { return scheduledPublishTime; }
+    public void setScheduledPublishTime(Date scheduledPublishTime) { this.scheduledPublishTime = scheduledPublishTime; }
+
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
+
+    public String getCandidateName() { return candidateName; }
+    public void setCandidateName(String candidateName) { this.candidateName = candidateName; }
 
     public String getSubjectName() { return subjectName; }
     public void setSubjectName(String subjectName) { this.subjectName = subjectName; }

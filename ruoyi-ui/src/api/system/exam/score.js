@@ -60,6 +60,31 @@ export function publishScore(scoreIds) {
   })
 }
 
+// 取消发布成绩
+export function unpublishScore(scoreIds) {
+  return request({
+    url: '/system/exam/score/unpublish/' + scoreIds,
+    method: 'put'
+  })
+}
+
+// 设置定时发布
+export function schedulePublish(scoreIds, scheduledPublishTime) {
+  return request({
+    url: '/system/exam/score/schedulePublish/' + scoreIds,
+    method: 'put',
+    data: { scheduledPublishTime }
+  })
+}
+
+// 取消定时发布
+export function cancelSchedule(scoreIds) {
+  return request({
+    url: '/system/exam/score/cancelSchedule/' + scoreIds,
+    method: 'put'
+  })
+}
+
 // 导出成绩
 export function exportScore(query) {
   return request({

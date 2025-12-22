@@ -125,4 +125,49 @@ public class ExamScoreController extends BaseController
     {
         return toAjax(examScoreService.publishExamScoreByIds(scoreIds));
     }
+
+    /**
+     * 取消发布成绩
+     */
+    @PreAuthorize("@ss.hasPermi('system:score:edit')")
+    @Log(title = "考试成绩", businessType = BusinessType.UPDATE)
+    @PutMapping("/unpublish/{scoreIds}")
+    public AjaxResult unpublish(@PathVariable Long[] scoreIds)
+    {
+        return toAjax(examScoreService.unpublishExamScoreByIds(scoreIds));
+    }
+
+    /**
+     * 设置定时发布
+     */
+    @PreAuthorize("@ss.hasPermi('system:score:edit')")
+    @Log(title = "考试成绩", businessType = BusinessType.UPDATE)
+    @PutMapping("/schedulePublish")
+    public AjaxResult schedulePublish(@RequestBody ExamScore examScore)
+    {
+        Long[] scoreIds = examScore.getScoreId() != null ? new Long[]{examScore.getScoreId()} : new Long[0];
+        return toAjax(examScoreService.setScheduledPublish(scoreIds, examScore.getScheduledPublishTime()));
+    }
+
+    /**
+     * 批量设置定时发布
+     */
+    @PreAuthorize("@ss.hasPermi('system:score:edit')")
+    @Log(title = "考试成绩", businessType = BusinessType.UPDATE)
+    @PutMapping("/schedulePublish/{scoreIds}")
+    public AjaxResult batchSchedulePublish(@PathVariable Long[] scoreIds, @RequestBody ExamScore examScore)
+    {
+        return toAjax(examScoreService.setScheduledPublish(scoreIds, examScore.getScheduledPublishTime()));
+    }
+
+    /**
+     * 取消定时发布
+     */
+    @PreAuthorize("@ss.hasPermi('system:score:edit')")
+    @Log(title = "考试成绩", businessType = BusinessType.UPDATE)
+    @PutMapping("/cancelSchedule/{scoreIds}")
+    public AjaxResult cancelSchedule(@PathVariable Long[] scoreIds)
+    {
+        return toAjax(examScoreService.cancelScheduledPublish(scoreIds));
+    }
 }

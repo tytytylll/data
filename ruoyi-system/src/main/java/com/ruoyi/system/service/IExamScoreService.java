@@ -1,5 +1,6 @@
 package com.ruoyi.system.service;
 
+import java.util.Date;
 import java.util.List;
 import com.ruoyi.system.domain.ExamScore;
 
@@ -49,4 +50,24 @@ public interface IExamScoreService
      * 批量发布成绩
      */
     public int publishExamScoreByIds(Long[] scoreIds);
+
+    /**
+     * 批量取消发布成绩
+     */
+    public int unpublishExamScoreByIds(Long[] scoreIds);
+
+    /**
+     * 设置定时发布
+     */
+    public int setScheduledPublish(Long[] scoreIds, Date scheduledTime);
+
+    /**
+     * 取消定时发布
+     */
+    public int cancelScheduledPublish(Long[] scoreIds);
+
+    /**
+     * 执行定时发布任务
+     */
+    public void executeScheduledPublish();
 }
