@@ -10,6 +10,7 @@ public interface ExamCandidateMapper {
     public List<ExamCandidate> selectExamCandidateList(ExamCandidate examCandidate);
     public List<ExamCandidate> selectExamCandidateAll();
     public ExamCandidate selectExamCandidateById(Long candidateId);
+    public ExamCandidate selectExamCandidateByUserId(Long userId);
     public ExamCandidate checkIdCardUnique(String idCard);
     public int insertExamCandidate(ExamCandidate examCandidate);
     public int updateExamCandidate(ExamCandidate examCandidate);

@@ -159,7 +159,7 @@
               <span v-else class="text-muted">-</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="120" fixed="right" align="center">
+          <el-table-column label="操作" width="180" fixed="right" align="center">
             <template slot-scope="scope">
               <el-button
                 type="text"
@@ -167,6 +167,13 @@
                 @click="handleViewDetail(scope.row)"
               >
                 查看详情
+              </el-button>
+              <el-button
+                type="text"
+                icon="el-icon-document"
+                @click="handleGenerateReport(scope.row)"
+              >
+                成绩单
               </el-button>
             </template>
           </el-table-column>
@@ -241,7 +248,128 @@
         </div>
       </div>
       <span slot="footer" class="dialog-footer">
+        <el-button @click="handleGenerateReport(currentScore)">
+          <i class="el-icon-document"></i> 生成成绩单
+        </el-button>
         <el-button type="primary" @click="detailDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 成绩单预览对话框 -->
+    <el-dialog 
+      title="成绩单预览" 
+      :visible.sync="reportDialogVisible" 
+      width="700px"
+      class="report-dialog"
+    >
+      <div class="report-container" ref="reportContent" v-if="currentScore">
+        <div class="report-content">
+          <!-- 成绩单头部 -->
+          <div class="report-header">
+            <div class="report-logo">
+              <i class="el-icon-reading"></i>
+            </div>
+            <h1 class="report-title">考试成绩单</h1>
+            <p class="report-subtitle">EXAMINATION SCORE REPORT</p>
+          </div>
+
+          <!-- 分隔线 -->
+          <div class="report-divider"></div>
+
+          <!-- 考生信息 -->
+          <div class="report-section">
+            <h3 class="section-label">考生信息</h3>
+            <div class="info-grid">
+              <div class="info-row">
+                <span class="label">考生姓名：</span>
+                <span class="value">{{ currentScore.candidateName || userName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">证件号码：</span>
+                <span class="value">{{ currentScore.idCard || '***' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 考试信息 -->
+          <div class="report-section">
+            <h3 class="section-label">考试信息</h3>
+            <div class="info-grid">
+              <div class="info-row">
+                <span class="label">考试科目：</span>
+                <span class="value">{{ currentScore.subjectName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">考试考点：</span>
+                <span class="value">{{ currentScore.siteName || '-' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">考试场次：</span>
+                <span class="value">{{ currentScore.sessionName || '-' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">考试时间：</span>
+                <span class="value">{{ currentScore.examTime || '-' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 成绩信息 -->
+          <div class="report-section score-section">
+            <h3 class="section-label">成绩信息</h3>
+            <div class="score-display">
+              <div class="score-main">
+                <div class="score-circle" :class="getScoreClass(currentScore.score)">
+                  <span class="score-number">{{ currentScore.score }}</span>
+                  <span class="score-unit">分</span>
+                </div>
+              </div>
+              <div class="score-details">
+                <div class="detail-item">
+                  <span class="detail-label">成绩等级</span>
+                  <span class="detail-value">{{ currentScore.scoreLevel || '-' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">是否通过</span>
+                  <span class="detail-value" :class="currentScore.passStatus === '1' ? 'pass' : 'fail'">
+                    {{ currentScore.passStatus === '1' ? '通过' : '未通过' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 备注 -->
+          <div class="report-section" v-if="currentScore.remark">
+            <h3 class="section-label">备注</h3>
+            <p class="remark-text">{{ currentScore.remark }}</p>
+          </div>
+
+          <!-- 页脚 -->
+          <div class="report-footer">
+            <div class="footer-info">
+              <p>成绩发布时间：{{ currentScore.publishTime || '-' }}</p>
+              <p>打印时间：{{ printTime }}</p>
+            </div>
+            <div class="footer-stamp">
+              <div class="stamp">
+                <span>考试管理系统</span>
+                <span>电子成绩单</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 声明 -->
+          <div class="report-notice">
+            <p>* 本成绩单由考试管理系统自动生成，仅供参考。</p>
+            <p>* 如需官方成绩证明，请联系相关部门。</p>
+          </div>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="reportDialogVisible = false">关 闭</el-button>
+        <el-button type="primary" icon="el-icon-printer" @click="handlePrint">打印成绩单</el-button>
+        <el-button type="success" icon="el-icon-download" @click="handleDownloadPDF">下载PDF</el-button>
       </span>
     </el-dialog>
 
@@ -282,11 +410,16 @@ export default {
       },
       // 详情对话框
       detailDialogVisible: false,
-      currentScore: null
+      currentScore: null,
+      // 成绩单对话框
+      reportDialogVisible: false,
+      printTime: '',
+      userName: ''
     }
   },
   created() {
     this.getList()
+    this.getUserName()
   },
   methods: {
     /** 返回首页 */
@@ -422,6 +555,103 @@ export default {
         '不及格': 'danger'
       }
       return typeMap[level] || 'info'
+    },
+    
+    /** 获取用户名 */
+    getUserName() {
+      const user = this.$store.getters.name
+      this.userName = user || '考生'
+    },
+    
+    /** 生成成绩单 */
+    handleGenerateReport(row) {
+      this.currentScore = row
+      this.printTime = this.formatDate(new Date())
+      this.reportDialogVisible = true
+    },
+    
+    /** 格式化日期 */
+    formatDate(date) {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    },
+    
+    /** 打印成绩单 */
+    handlePrint() {
+      const printContent = this.$refs.reportContent.innerHTML
+      const printWindow = window.open('', '_blank')
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>考试成绩单</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Microsoft YaHei', Arial, sans-serif; padding: 40px; background: #fff; }
+            .report-content { max-width: 600px; margin: 0 auto; }
+            .report-header { text-align: center; margin-bottom: 30px; }
+            .report-logo { font-size: 48px; color: #1890ff; margin-bottom: 10px; }
+            .report-title { font-size: 28px; color: #2c3e50; margin-bottom: 8px; }
+            .report-subtitle { font-size: 14px; color: #909399; letter-spacing: 2px; }
+            .report-divider { height: 2px; background: linear-gradient(90deg, transparent, #1890ff, transparent); margin: 20px 0; }
+            .report-section { margin-bottom: 24px; }
+            .section-label { font-size: 16px; color: #2c3e50; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #1890ff; }
+            .info-grid { background: #f9f9f9; padding: 16px; border-radius: 4px; }
+            .info-row { display: flex; padding: 8px 0; border-bottom: 1px dashed #e8e8e8; }
+            .info-row:last-child { border-bottom: none; }
+            .info-row .label { width: 100px; color: #909399; }
+            .info-row .value { flex: 1; color: #2c3e50; font-weight: 500; }
+            .score-section .score-display { display: flex; align-items: center; background: #f9f9f9; padding: 20px; border-radius: 4px; }
+            .score-main { margin-right: 40px; }
+            .score-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
+            .score-circle.excellent { background: #52c41a; }
+            .score-circle.good { background: #1890ff; }
+            .score-circle.pass { background: #faad14; }
+            .score-circle.fail { background: #ff4d4f; }
+            .score-number { font-size: 32px; font-weight: bold; }
+            .score-unit { font-size: 12px; }
+            .score-details { flex: 1; }
+            .detail-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #e8e8e8; }
+            .detail-item:last-child { border-bottom: none; }
+            .detail-label { color: #909399; }
+            .detail-value { font-weight: 500; color: #2c3e50; }
+            .detail-value.pass { color: #52c41a; }
+            .detail-value.fail { color: #ff4d4f; }
+            .report-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e8e8e8; }
+            .footer-info { color: #909399; font-size: 12px; }
+            .footer-info p { margin-bottom: 4px; }
+            .footer-stamp .stamp { width: 80px; height: 80px; border: 2px solid #ff4d4f; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ff4d4f; font-size: 12px; transform: rotate(-15deg); }
+            .report-notice { margin-top: 30px; padding: 12px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; }
+            .report-notice p { font-size: 12px; color: #ad8b00; margin-bottom: 4px; }
+            .report-notice p:last-child { margin-bottom: 0; }
+            .remark-text { background: #f9f9f9; padding: 12px; border-radius: 4px; color: #606266; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+        </body>
+        </html>
+      `)
+      printWindow.document.close()
+      printWindow.focus()
+      setTimeout(() => {
+        printWindow.print()
+        printWindow.close()
+      }, 250)
+    },
+    
+    /** 下载PDF */
+    handleDownloadPDF() {
+      // 使用html2canvas和jspdf生成PDF
+      // 如果没有安装这些库，则使用打印功能
+      this.$message.info('正在生成PDF，请在打印对话框中选择"另存为PDF"')
+      this.handlePrint()
     }
   }
 }
@@ -760,6 +990,227 @@ export default {
         .stat-number {
           font-size: 24px;
         }
+      }
+    }
+  }
+}
+
+// 成绩单样式
+.report-container {
+  background: #fff;
+  
+  .report-content {
+    padding: 20px;
+  }
+  
+  .report-header {
+    text-align: center;
+    margin-bottom: 30px;
+    
+    .report-logo {
+      font-size: 48px;
+      color: #1890ff;
+      margin-bottom: 10px;
+    }
+    
+    .report-title {
+      font-size: 28px;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .report-subtitle {
+      font-size: 14px;
+      color: #909399;
+      letter-spacing: 2px;
+    }
+  }
+  
+  .report-divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #1890ff, transparent);
+    margin: 20px 0;
+  }
+  
+  .report-section {
+    margin-bottom: 24px;
+    
+    .section-label {
+      font-size: 16px;
+      color: #2c3e50;
+      margin-bottom: 12px;
+      padding-left: 10px;
+      border-left: 3px solid #1890ff;
+      font-weight: 600;
+    }
+  }
+  
+  .info-grid {
+    background: #f9f9f9;
+    padding: 16px;
+    border-radius: 4px;
+    
+    .info-row {
+      display: flex;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e8e8e8;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .label {
+        width: 100px;
+        color: #909399;
+      }
+      
+      .value {
+        flex: 1;
+        color: #2c3e50;
+        font-weight: 500;
+      }
+    }
+  }
+  
+  .score-section {
+    .score-display {
+      display: flex;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 4px;
+      
+      .score-main {
+        margin-right: 40px;
+        
+        .score-circle {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          
+          &.excellent {
+            background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+          }
+          &.good {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+          }
+          &.pass {
+            background: linear-gradient(135deg, #faad14 0%, #d48806 100%);
+          }
+          &.fail {
+            background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
+          }
+          
+          .score-number {
+            font-size: 32px;
+            font-weight: 600;
+          }
+          
+          .score-unit {
+            font-size: 12px;
+          }
+        }
+      }
+      
+      .score-details {
+        flex: 1;
+        
+        .detail-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px 0;
+          border-bottom: 1px dashed #e8e8e8;
+          
+          &:last-child {
+            border-bottom: none;
+          }
+          
+          .detail-label {
+            color: #909399;
+          }
+          
+          .detail-value {
+            font-weight: 500;
+            color: #2c3e50;
+            
+            &.pass {
+              color: #52c41a;
+            }
+            &.fail {
+              color: #ff4d4f;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .remark-text {
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 4px;
+    color: #606266;
+  }
+  
+  .report-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #e8e8e8;
+    
+    .footer-info {
+      color: #909399;
+      font-size: 12px;
+      
+      p {
+        margin-bottom: 4px;
+      }
+    }
+    
+    .footer-stamp {
+      .stamp {
+        width: 80px;
+        height: 80px;
+        border: 2px solid #ff4d4f;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #ff4d4f;
+        font-size: 12px;
+        transform: rotate(-15deg);
+        text-align: center;
+        
+        span {
+          display: block;
+        }
+      }
+    }
+  }
+  
+  .report-notice {
+    margin-top: 30px;
+    padding: 12px;
+    background: #fffbe6;
+    border: 1px solid #ffe58f;
+    border-radius: 4px;
+    
+    p {
+      font-size: 12px;
+      color: #ad8b00;
+      margin-bottom: 4px;
+      
+      &:last-child {
+        margin-bottom: 0;
       }
     }
   }

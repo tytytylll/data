@@ -81,6 +81,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		order by s.exam_time desc
 	</select>
 	
+	<select id="selectExamScoreByCandidateId" parameterType="Long" resultMap="ExamScoreResult">
+		<include refid="selectExamScoreVo"/>
+		where s.candidate_id = #{candidateId} and s.status = '0' and s.publish_status = '1'
+		order by s.exam_time desc
+	</select>
+	
 	<select id="selectExamScoreById" parameterType="Long" resultMap="ExamScoreResult">
 		<include refid="selectExamScoreVo"/>
 		where s.score_id = #{scoreId}

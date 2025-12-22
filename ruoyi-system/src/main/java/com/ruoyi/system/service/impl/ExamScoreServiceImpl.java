@@ -1,12 +1,15 @@
 package com.ruoyi.system.service.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.ruoyi.system.domain.ExamCandidate;
 import com.ruoyi.system.domain.ExamScore;
+import com.ruoyi.system.mapper.ExamCandidateMapper;
 import com.ruoyi.system.mapper.ExamScoreMapper;
 import com.ruoyi.system.service.IExamScoreService;
 
@@ -23,6 +26,9 @@ public class ExamScoreServiceImpl implements IExamScoreService
     @Autowired
     private ExamScoreMapper examScoreMapper;
 
+    @Autowired
+    private ExamCandidateMapper examCandidateMapper;
+
     @Override
     public List<ExamScore> selectExamScoreList(ExamScore examScore)
     {
@@ -32,6 +38,13 @@ public class ExamScoreServiceImpl implements IExamScoreService
     @Override
     public List<ExamScore> selectMyExamScoreList(Long userId)
     {
+        // 先通过用户ID查找关联的考生
+        ExamCandidate candidate = examCandidateMapper.selectExamCandidateByUserId(userId);
+        if (candidate != null)
+        {
+            return examScoreMapper.selectExamScoreByCandidateId(candidate.getCandidateId());
+        }
+        // 如果没有关联考生，尝试通过userId直接查询（兼容旧数据）
         return examScoreMapper.selectExamScoreByUserId(userId);
     }
 

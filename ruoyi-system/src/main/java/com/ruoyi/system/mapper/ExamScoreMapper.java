@@ -23,6 +23,11 @@ public interface ExamScoreMapper
     public List<ExamScore> selectExamScoreByUserId(Long userId);
 
     /**
+     * 查询考生成绩列表
+     */
+    public List<ExamScore> selectExamScoreByCandidateId(Long candidateId);
+
+    /**
      * 通过成绩ID查询成绩
      */
     public ExamScore selectExamScoreById(Long scoreId);
