@@ -50,10 +50,10 @@ public class ExamScoreController extends BaseController
      * 获取我的成绩列表（当前用户）
      */
     @GetMapping("/my")
-    public TableDataInfo myList()
+    public TableDataInfo myList(ExamScore examScore)
     {
         startPage();
-        List<ExamScore> list = examScoreService.selectMyExamScoreList(getUserId());
+        List<ExamScore> list = examScoreService.selectMyExamScoreList(getUserId(), examScore);
         return getDataTable(list);
     }
 

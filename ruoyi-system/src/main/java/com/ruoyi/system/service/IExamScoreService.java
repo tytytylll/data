@@ -19,7 +19,7 @@ public interface IExamScoreService
     /**
      * 查询用户成绩列表（已发布的）
      */
-    public List<ExamScore> selectMyExamScoreList(Long userId);
+    public List<ExamScore> selectMyExamScoreList(Long userId, ExamScore examScore);
 
     /**
      * 通过成绩ID查询成绩

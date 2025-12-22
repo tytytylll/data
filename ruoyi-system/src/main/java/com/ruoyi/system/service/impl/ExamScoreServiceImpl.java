@@ -36,16 +36,22 @@ public class ExamScoreServiceImpl implements IExamScoreService
     }
 
     @Override
-    public List<ExamScore> selectMyExamScoreList(Long userId)
+    public List<ExamScore> selectMyExamScoreList(Long userId, ExamScore examScore)
     {
         // 先通过用户ID查找关联的考生
         ExamCandidate candidate = examCandidateMapper.selectExamCandidateByUserId(userId);
         if (candidate != null)
         {
-            return examScoreMapper.selectExamScoreByCandidateId(candidate.getCandidateId());
+            examScore.setCandidateId(candidate.getCandidateId());
         }
-        // 如果没有关联考生，尝试通过userId直接查询（兼容旧数据）
-        return examScoreMapper.selectExamScoreByUserId(userId);
+        else
+        {
+            examScore.setUserId(userId);
+        }
+        // 只查询已发布的成绩
+        examScore.setPublishStatus("1");
+        examScore.setStatus("0");
+        return examScoreMapper.selectMyExamScoreList(examScore);
     }
 
     @Override

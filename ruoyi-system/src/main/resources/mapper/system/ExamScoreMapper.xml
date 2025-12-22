@@ -87,6 +87,37 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		order by s.exam_time desc
 	</select>
 	
+	<select id="selectMyExamScoreList" parameterType="ExamScore" resultMap="ExamScoreResult">
+		<include refid="selectExamScoreVo"/>
+		<where>
+			<if test="candidateId != null">
+				AND s.candidate_id = #{candidateId}
+			</if>
+			<if test="userId != null">
+				AND s.user_id = #{userId}
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				AND sub.subject_name like concat('%', #{subjectName}, '%')
+			</if>
+			<if test="passStatus != null and passStatus != ''">
+				AND s.pass_status = #{passStatus}
+			</if>
+			<if test="status != null and status != ''">
+				AND s.status = #{status}
+			</if>
+			<if test="publishStatus != null and publishStatus != ''">
+				AND s.publish_status = #{publishStatus}
+			</if>
+			<if test="beginExamTime != null and beginExamTime != ''">
+				AND DATE(s.exam_time) &gt;= #{beginExamTime}
+			</if>
+			<if test="endExamTime != null and endExamTime != ''">
+				AND DATE(s.exam_time) &lt;= #{endExamTime}
+			</if>
+		</where>
+		order by s.exam_time desc
+	</select>
+	
 	<select id="selectExamScoreById" parameterType="Long" resultMap="ExamScoreResult">
 		<include refid="selectExamScoreVo"/>
 		where s.score_id = #{scoreId}

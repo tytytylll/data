@@ -92,6 +92,12 @@ public class ExamScore extends BaseEntity
     /** 场次名称（非数据库字段） */
     private String sessionName;
 
+    /** 考试开始时间（查询用） */
+    private String beginExamTime;
+
+    /** 考试结束时间（查询用） */
+    private String endExamTime;
+
     public Long getScoreId() { return scoreId; }
     public void setScoreId(Long scoreId) { this.scoreId = scoreId; }
 
@@ -148,6 +154,12 @@ public class ExamScore extends BaseEntity
 
     public String getSessionName() { return sessionName; }
     public void setSessionName(String sessionName) { this.sessionName = sessionName; }
+
+    public String getBeginExamTime() { return beginExamTime; }
+    public void setBeginExamTime(String beginExamTime) { this.beginExamTime = beginExamTime; }
+
+    public String getEndExamTime() { return endExamTime; }
+    public void setEndExamTime(String endExamTime) { this.endExamTime = endExamTime; }
 
     @Override
     public String toString() {
