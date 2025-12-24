@@ -37,7 +37,6 @@ public class ExamSessionController extends BaseController
     /**
      * 获取考试场次列表
      */
-    @PreAuthorize("@ss.hasPermi('system:session:list')")
     @GetMapping("/list")
     public TableDataInfo list(ExamSession examSession)
     {

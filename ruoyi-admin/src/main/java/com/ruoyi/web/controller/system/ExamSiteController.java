@@ -37,7 +37,6 @@ public class ExamSiteController extends BaseController
     /**
      * 获取考点列表
      */
-    @PreAuthorize("@ss.hasPermi('system:site:list')")
     @GetMapping("/list")
     public TableDataInfo list(ExamSite examSite)
     {

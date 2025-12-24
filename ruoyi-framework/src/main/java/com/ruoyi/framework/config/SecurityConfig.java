@@ -115,6 +115,14 @@ public class SecurityConfig
                     // 静态资源，可匿名访问
                     .antMatchers(HttpMethod.GET, "/", "/*.html", "/**/*.html", "/**/*.css", "/**/*.js", "/profile/**").permitAll()
                     .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/*/api-docs", "/druid/**").permitAll()
+                    // 考试前台页面接口，允许登录用户访问
+                    .antMatchers("/system/exam/subject/list", "/system/exam/subject/optionselect").permitAll()
+                    .antMatchers("/system/exam/site/list", "/system/exam/site/optionselect").permitAll()
+                    .antMatchers("/system/exam/session/list").permitAll()
+                    .antMatchers("/system/exam/score/my").permitAll()
+                    .antMatchers("/system/exam/statistics/home").permitAll()
+                    .antMatchers("/system/notice/public").permitAll()
+                    .antMatchers("/system/exam/registration/**").permitAll()
                     // 除上面外的所有请求全部需要鉴权认证
                     .anyRequest().authenticated();
             })

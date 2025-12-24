@@ -583,6 +583,49 @@ export default {
     
     /** 打印成绩单 */
     handlePrint() {
+      const expectedName = this.currentScore.candidateName || this.userName
+      this.$prompt('为确保成绩单安全，请输入考生姓名进行确认', '身份确认', {
+        confirmButtonText: '确认打印',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入考生姓名',
+        inputValidator: (value) => {
+          if (!value) {
+            return '请输入考生姓名'
+          }
+          if (value !== expectedName) {
+            return '姓名输入不正确'
+          }
+          return true
+        }
+      }).then(() => {
+        this.doPrint()
+      }).catch(() => {})
+    },
+    
+    /** 下载PDF */
+    handleDownloadPDF() {
+      const expectedName = this.currentScore.candidateName || this.userName
+      this.$prompt('为确保成绩单安全，请输入考生姓名进行确认', '身份确认', {
+        confirmButtonText: '确认下载',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入考生姓名',
+        inputValidator: (value) => {
+          if (!value) {
+            return '请输入考生姓名'
+          }
+          if (value !== expectedName) {
+            return '姓名输入不正确'
+          }
+          return true
+        }
+      }).then(() => {
+        this.$message.info('正在生成PDF，请在打印对话框中选择"另存为PDF"')
+        this.doPrint()
+      }).catch(() => {})
+    },
+    
+    /** 执行打印 */
+    doPrint() {
       const printContent = this.$refs.reportContent.innerHTML
       const printWindow = window.open('', '_blank')
       printWindow.document.write(`
@@ -644,14 +687,6 @@ export default {
         printWindow.print()
         printWindow.close()
       }, 250)
-    },
-    
-    /** 下载PDF */
-    handleDownloadPDF() {
-      // 使用html2canvas和jspdf生成PDF
-      // 如果没有安装这些库，则使用打印功能
-      this.$message.info('正在生成PDF，请在打印对话框中选择"另存为PDF"')
-      this.handlePrint()
     }
   }
 }

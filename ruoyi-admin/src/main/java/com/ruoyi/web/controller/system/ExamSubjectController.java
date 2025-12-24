@@ -37,7 +37,6 @@ public class ExamSubjectController extends BaseController
     /**
      * 获取考试科目列表
      */
-    @PreAuthorize("@ss.hasPermi('system:subject:list')")
     @GetMapping("/list")
     public TableDataInfo list(ExamSubject examSubject)
     {

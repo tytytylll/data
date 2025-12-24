@@ -76,6 +76,8 @@
 </template>
 
 <script>
+import request from '@/utils/request'
+
 export default {
   name: 'MyExams',
   data() {
@@ -96,27 +98,24 @@ export default {
     },
     
     loadMyRegistrations() {
-      // TODO: 调用后端API获取我的报名记录
-      this.myRegistrations = [
-        {
-          id: 1,
-          examName: '全国计算机等级考试二级',
-          examSite: '教学楼A座',
-          examSession: '2024-03-25 09:00-11:00',
-          seatNumber: 'A101',
-          registrationTime: '2024-03-15 10:30',
-          status: '待确认'
-        },
-        {
-          id: 2,
-          examName: '大学英语四级考试',
-          examSite: '教学楼B座',
-          examSession: '2024-03-28 14:00-16:05',
-          seatNumber: 'B205',
-          registrationTime: '2024-03-12 15:20',
-          status: '已确认'
+      request({
+        url: '/system/exam/registration/my',
+        method: 'get'
+      }).then(response => {
+        if (response.data) {
+          this.myRegistrations = response.data.map(item => ({
+            id: item.registrationId,
+            examName: item.subjectName,
+            examSite: item.siteName,
+            examSession: `${item.examDate} ${item.startTime}-${item.endTime}`,
+            seatNumber: item.seatNumber || '-',
+            registrationTime: item.createTime,
+            status: item.status === '0' ? '待确认' : item.status === '1' ? '已确认' : '已取消'
+          }))
         }
-      ]
+      }).catch(() => {
+        this.myRegistrations = []
+      })
     },
     
     handleConfirmRegistration(row) {
@@ -125,9 +124,13 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // TODO: 调用后端API确认报名
-        this.$message.success('报名已确认')
-        this.loadMyRegistrations()
+        request({
+          url: '/system/exam/registration/confirm/' + row.id,
+          method: 'put'
+        }).then(() => {
+          this.$message.success('报名已确认')
+          this.loadMyRegistrations()
+        })
       }).catch(() => {
         this.$message.info('已取消确认')
       })
@@ -149,9 +152,13 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // TODO: 调用后端API取消报名
-        this.$message.success('已取消报名')
-        this.loadMyRegistrations()
+        request({
+          url: '/system/exam/registration/' + row.id,
+          method: 'delete'
+        }).then(() => {
+          this.$message.success('已取消报名')
+          this.loadMyRegistrations()
+        })
       }).catch(() => {
         this.$message.info('已取消操作')
       })

@@ -45,6 +45,18 @@ public class SysNoticeController extends BaseController
     }
 
     /**
+     * 获取公开的通知公告列表（前台页面使用）
+     */
+    @GetMapping("/public")
+    public TableDataInfo publicList(SysNotice notice)
+    {
+        startPage();
+        notice.setStatus("0"); // 只查询正常状态的公告
+        List<SysNotice> list = noticeService.selectNoticeList(notice);
+        return getDataTable(list);
+    }
+
+    /**
      * 根据通知公告编号获取详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:notice:query')")

@@ -79,6 +79,8 @@ public class SysRegisterService
             sysUser.setNickName(username);
             sysUser.setPwdUpdateDate(DateUtils.getNowDate());
             sysUser.setPassword(SecurityUtils.encryptPassword(password));
+            sysUser.setStatus("0");  // 设置状态为正常
+            sysUser.setDelFlag("0"); // 设置删除标志为存在
             boolean regFlag = userService.registerUser(sysUser);
             if (!regFlag)
             {

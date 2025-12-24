@@ -62,7 +62,7 @@
                 </el-tag>
                 <span class="exam-category">{{ exam.category }}</span>
               </div>
-              <h3 class="exam-title">{{ exam.name }}</h3>
+              <h3 class="exam-title" @click="handleViewDetail(exam)" style="cursor: pointer;">{{ exam.name }}</h3>
               <div class="exam-info">
                 <div class="info-item">
                   <i class="el-icon-time"></i>
@@ -200,6 +200,56 @@
       </span>
     </el-dialog>
 
+    <!-- 科目详情对话框 -->
+    <el-dialog
+      title="考试科目详情"
+      :visible.sync="detailDialogVisible"
+      width="500px"
+    >
+      <div v-if="detailExam" class="exam-detail">
+        <div class="detail-header">
+          <el-tag :type="getExamStatusTagType(detailExam.status)" size="medium">
+            {{ detailExam.status }}
+          </el-tag>
+          <span class="detail-category">{{ detailExam.category }}</span>
+        </div>
+        <h2 class="detail-title">{{ detailExam.name }}</h2>
+        <el-divider></el-divider>
+        <div class="detail-info">
+          <div class="info-row">
+            <span class="info-label"><i class="el-icon-time"></i> 考试时长：</span>
+            <span class="info-value">{{ detailExam.duration }} 分钟</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label"><i class="el-icon-tickets"></i> 题目数量：</span>
+            <span class="info-value">{{ detailExam.totalQuestions }} 题</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label"><i class="el-icon-user"></i> 已报名人数：</span>
+            <span class="info-value">{{ detailExam.registeredCount }} 人</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label"><i class="el-icon-date"></i> 报名截止：</span>
+            <span class="info-value">{{ detailExam.registrationDeadline }}</span>
+          </div>
+          <div class="info-row" v-if="detailExam.description">
+            <span class="info-label"><i class="el-icon-document"></i> 科目描述：</span>
+            <span class="info-value">{{ detailExam.description }}</span>
+          </div>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="detailDialogVisible = false">关 闭</el-button>
+        <el-button
+          type="primary"
+          :disabled="detailExam && detailExam.status !== '报名中'"
+          @click="handleRegisterFromDetail"
+        >
+          立即报名
+        </el-button>
+      </span>
+    </el-dialog>
+
     <!-- 页脚 -->
     <div class="footer">
       <p>Copyright © 2018-2025 exam-system.com All Rights Reserved.</p>
@@ -208,13 +258,17 @@
 </template>
 
 <script>
+import { listSubject } from "@/api/system/exam/subject"
+import { optionselect as getSiteOptions } from "@/api/system/exam/site"
+import { listSession } from "@/api/system/exam/session"
+
 export default {
   name: 'ExamRegistration',
   data() {
     return {
       searchKeyword: '',
       selectedCategory: '',
-      categories: ['计算机', '英语', '数学', '专业课', '其他'],
+      categories: [],
       examList: [],
       registrationDialogVisible: false,
       selectedExam: null,
@@ -222,6 +276,8 @@ export default {
       selectedSessionId: null,
       examSites: [],
       examSessions: [],
+      detailDialogVisible: false,
+      detailExam: null,
       registrationForm: {
         name: '',
         idCard: '',
@@ -296,69 +352,32 @@ export default {
     },
     
     loadExamList() {
-      // TODO: 调用后端API获取考试列表
-      this.examList = [
-        {
-          id: 1,
-          name: '全国计算机等级考试二级',
-          category: '计算机',
+      // 调用后端API获取考试科目列表
+      listSubject({ status: '0' }).then(response => {
+        const subjects = response.rows || []
+        this.examList = subjects.map(item => ({
+          id: item.subjectId,
+          name: item.subjectName,
+          category: item.subjectCode || '其他',
           status: '报名中',
           duration: 120,
-          totalQuestions: 80,
-          registeredCount: 156,
-          registrationDeadline: '2024-03-20'
-        },
-        {
-          id: 2,
-          name: '大学英语四级考试',
-          category: '英语',
-          status: '报名中',
-          duration: 125,
           totalQuestions: 100,
-          registeredCount: 328,
-          registrationDeadline: '2024-03-25'
-        },
-        {
-          id: 3,
-          name: '高等数学期末考试',
-          category: '数学',
-          status: '报名中',
-          duration: 120,
-          totalQuestions: 50,
-          registeredCount: 245,
-          registrationDeadline: '2024-03-18'
-        },
-        {
-          id: 4,
-          name: 'Java程序设计考试',
-          category: '计算机',
-          status: '报名中',
-          duration: 90,
-          totalQuestions: 60,
-          registeredCount: 89,
-          registrationDeadline: '2024-03-22'
-        },
-        {
-          id: 5,
-          name: '数据结构与算法',
-          category: '计算机',
-          status: '已结束',
-          duration: 120,
-          totalQuestions: 70,
-          registeredCount: 198,
-          registrationDeadline: '2024-03-10'
-        },
-        {
-          id: 6,
-          name: '大学英语六级考试',
-          category: '英语',
-          status: '报名中',
-          duration: 130,
-          totalQuestions: 100,
-          registeredCount: 267,
-          registrationDeadline: '2024-03-25'
-        }
-      ]
+          registeredCount: 0,
+          registrationDeadline: this.getDefaultDeadline(),
+          description: item.description
+        }))
+        // 提取分类
+        const categorySet = new Set(this.examList.map(e => e.category))
+        this.categories = Array.from(categorySet)
+      }).catch(() => {
+        this.$message.error('获取考试科目列表失败')
+      })
+    },
+    
+    getDefaultDeadline() {
+      const date = new Date()
+      date.setDate(date.getDate() + 30)
+      return date.toISOString().split('T')[0]
     },
     
     handleRegister(exam) {
@@ -366,32 +385,38 @@ export default {
       this.registrationDialogVisible = true
       this.loadExamSites(exam.id)
     },
+
+    handleViewDetail(exam) {
+      this.detailExam = exam
+      this.detailDialogVisible = true
+    },
+
+    handleRegisterFromDetail() {
+      this.detailDialogVisible = false
+      this.handleRegister(this.detailExam)
+    },
     
     loadExamSites(examId) {
-      // TODO: 调用后端API获取考点列表
-      this.examSites = [
-        {
-          id: 1,
-          name: '教学楼A座',
-          address: '校本部教学楼A座3楼',
-          totalCapacity: 200,
-          remainingCapacity: 45
-        },
-        {
-          id: 2,
-          name: '教学楼B座',
-          address: '校本部教学楼B座2楼',
-          totalCapacity: 150,
-          remainingCapacity: 8
-        },
-        {
-          id: 3,
-          name: '实验楼C座',
-          address: '校本部实验楼C座1楼',
-          totalCapacity: 100,
-          remainingCapacity: 62
-        }
-      ]
+      // 调用后端API获取考点列表
+      getSiteOptions().then(response => {
+        const sites = response.data || []
+        this.examSites = sites.map(item => {
+          const totalCapacity = item.capacity || 100
+          // 如果后端返回了剩余名额则使用，否则默认有剩余名额
+          const remainingCapacity = item.remainingCapacity !== undefined 
+            ? item.remainingCapacity 
+            : Math.floor(totalCapacity * 0.7) // 默认剩余70%名额
+          return {
+            id: item.siteId,
+            name: item.siteName,
+            address: item.address || '',
+            totalCapacity: totalCapacity,
+            remainingCapacity: remainingCapacity
+          }
+        })
+      }).catch(() => {
+        this.$message.error('获取考点列表失败')
+      })
     },
     
     handleSiteChange(siteId) {
@@ -400,41 +425,27 @@ export default {
     },
     
     loadExamSessions(siteId) {
-      // TODO: 调用后端API获取场次列表
-      this.examSessions = [
-        {
-          id: 1,
-          date: '2024-03-25',
-          startTime: '09:00',
-          endTime: '11:00',
-          totalCapacity: 50,
-          remainingCapacity: 12
-        },
-        {
-          id: 2,
-          date: '2024-03-25',
-          startTime: '14:00',
-          endTime: '16:00',
-          totalCapacity: 50,
-          remainingCapacity: 3
-        },
-        {
-          id: 3,
-          date: '2024-03-26',
-          startTime: '09:00',
-          endTime: '11:00',
-          totalCapacity: 50,
-          remainingCapacity: 28
-        },
-        {
-          id: 4,
-          date: '2024-03-26',
-          startTime: '14:00',
-          endTime: '16:00',
-          totalCapacity: 50,
-          remainingCapacity: 0
-        }
-      ]
+      // 调用后端API获取场次列表
+      listSession({ siteId: siteId, status: '0', pageNum: 1, pageSize: 100 }).then(response => {
+        const sessions = response.rows || []
+        this.examSessions = sessions.map(item => {
+          const totalCapacity = item.capacity || 50
+          // 如果后端返回了剩余名额则使用，否则默认有剩余名额
+          const remainingCapacity = item.remainingCapacity !== undefined 
+            ? item.remainingCapacity 
+            : Math.floor(totalCapacity * 0.6) // 默认剩余60%名额
+          return {
+            id: item.sessionId,
+            date: item.examDate,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            totalCapacity: totalCapacity,
+            remainingCapacity: remainingCapacity
+          }
+        })
+      }).catch(() => {
+        this.$message.error('获取场次列表失败')
+      })
     },
     
     handleSubmitRegistration() {
@@ -750,6 +761,54 @@ export default {
   p {
     margin: 0;
     font-size: 13px;
+  }
+}
+
+.exam-detail {
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    
+    .detail-category {
+      font-size: 14px;
+      color: #909399;
+    }
+  }
+  
+  .detail-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 16px 0;
+  }
+  
+  .detail-info {
+    .info-row {
+      display: flex;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .info-label {
+        width: 120px;
+        color: #909399;
+        flex-shrink: 0;
+        
+        i {
+          margin-right: 6px;
+        }
+      }
+      
+      .info-value {
+        color: #2c3e50;
+        flex: 1;
+      }
+    }
   }
 }
 </style>

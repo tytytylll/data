@@ -162,7 +162,7 @@
 
 <script>
 import { getHomeStatistics } from "@/api/system/exam/statistics"
-import { listNotice } from "@/api/system/notice"
+import request from '@/utils/request'
 
 export default {
   name: 'ExamHome',
@@ -211,8 +211,12 @@ export default {
     },
     
     loadAnnouncements() {
-      // 调用后端API获取公告数据
-      listNotice({ status: '0' }).then(response => {
+      // 调用后端API获取公告数据（使用公开接口）
+      request({
+        url: '/system/notice/public',
+        method: 'get',
+        params: { status: '0' }
+      }).then(response => {
         if (response.rows && response.rows.length > 0) {
           this.announcements = response.rows.slice(0, 4).map(notice => {
             // 根据公告类型映射显示类型
